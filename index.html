@@ -13,13 +13,18 @@
   gtag('js', new Date());
   gtag('config', 'G-P41HN02DDV');
 </script>
-<title>Sleep Calculator</title>
-<meta name="description" content="Free sleep calculator. Find your ideal bedtime or wake-up time based on 90-minute sleep cycles, so you wake up feeling rested.">
+<title>Sleep Calculator &mdash; Free Bedtime &amp; Wake-Up Time by Sleep Cycle</title>
+<meta name="description" content="Free sleep calculator. Find your ideal bedtime or wake-up time based on 90-minute sleep cycles, log last night's sleep, and track your sleep duration and consistency over the week.">
+<meta property="og:title" content="Free Sleep Calculator | Healthy Life Scale">
+<meta property="og:description" content="Find your ideal bedtime or wake-up time by sleep cycle, and track your sleep over time.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sleep.healthylifescale.com/">
+<link rel="canonical" href="https://sleep.healthylifescale.com/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#FAF7F0; --paper-raised:#FFFFFF; --ink:#1A1A16; --ink-soft:#585448;
+    --paper:#FAF7F0; --paper-raised:#FFFFFF; --ink:#191918; --ink-soft:#585448;
     --muted:#8A8577; --protein:#B23A2F; --carb:#C08A17; --fat:#5C6B2E; --fiber:#3A6B6B;
     --danger:#B23A2F; --hair:#DEDACD; --sleep:#4B4E8C; --sleep-soft:#EEEEF6;
   }
@@ -142,6 +147,19 @@
   .faq-q.open .faq-icon{ transform:rotate(45deg); }
   .faq-a{ display:none; padding:0 0 14px; font-size:13px; line-height:1.65; color:var(--ink-soft); }
   .faq-a.open{ display:block; }
+
+  .sleeplog-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+  .sleeplog-btn{ background:var(--sleep); color:#fff; border:none; padding:11px; font-family:'Space Mono',monospace; font-size:11.5px; text-transform:uppercase; letter-spacing:0.03em; cursor:pointer; border-radius:2px; width:100%; }
+  .sleeplog-btn:hover{ background:#3B3D70; }
+  .streak-badge{ display:inline-flex; align-items:center; gap:6px; font-family:'Space Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.03em; color:var(--sleep); background:var(--sleep-soft); padding:5px 10px; border-radius:20px; margin-bottom:14px; }
+  .streak-badge.zero{ color:var(--muted); background:var(--paper); border:1px solid var(--hair); }
+  .week-chart{ display:flex; align-items:flex-end; gap:5px; height:70px; margin-top:6px; }
+  .week-bar-col{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .week-bar{ width:100%; background:var(--sleep); border-radius:2px 2px 0 0; min-height:3px; }
+  .week-bar.good{ background:var(--fiber); }
+  .week-bar.empty{ background:var(--hair); }
+  .week-bar-label{ font-family:'Space Mono',monospace; font-size:8.5px; color:var(--muted); text-transform:uppercase; }
+  .avg-line{ font-family:'Space Mono',monospace; font-size:12px; color:var(--ink-soft); margin-top:10px; }
 </style>
 <script type="application/ld+json">
 {
@@ -186,6 +204,22 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "No \u2014 this is a planning tool based on average cycle length, not a measurement of your actual sleep. A wearable can show your real sleep stages; this helps you plan bedtimes in advance."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I log my actual sleep each night?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes \u2014 enter the time you went to bed and woke up in the \"Log last night's sleep\" section, and it's saved privately in your browser. You'll see your duration for each of the last 7 nights and a running average."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What counts as a \"good\" night in the sleep log?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nights of at least 7 hours are highlighted in the weekly chart, since 7-9 hours is the generally recommended range for most adults. It's a simple visual cue, not a medical threshold."
       }
     }
   ]
@@ -253,6 +287,14 @@
         <a href="https://ascvd.healthylifescale.com">
           <div class="tm-name">ASCVD Risk Calculator</div>
           <div class="tm-desc">Estimate your 10-year heart disease and stroke risk tier.</div>
+        </a>
+        <a href="https://symptoms.healthylifescale.com">
+          <div class="tm-name">Symptom Checker</div>
+          <div class="tm-desc">Select your symptoms and find out how urgently to seek care.</div>
+        </a>
+        <a href="https://mentalhealth.healthylifescale.com">
+          <div class="tm-name">Mental Health Survey</div>
+          <div class="tm-desc">A private PHQ-9 / GAD-7 depression & anxiety screening.</div>
         </a>
         </div>
       </div>
@@ -341,6 +383,18 @@
   </div>
 
   <div class="card">
+    <h3>Log last night's sleep</h3>
+    <div class="sleeplog-row">
+      <div class="field"><label for="logBedTime">Went to bed at</label><input type="time" id="logBedTime" value="23:00"></div>
+      <div class="field"><label for="logWakeTime">Woke up at</label><input type="time" id="logWakeTime" value="07:00"></div>
+    </div>
+    <button class="sleeplog-btn" id="logSleepBtn">Save last night's sleep</button>
+    <span class="streak-badge" id="sleepStreakBadge" style="margin-top:14px;"></span>
+    <div class="week-chart" id="sleepWeekChart"></div>
+    <div class="avg-line" id="sleepAvgLine"></div>
+  </div>
+
+  <div class="card">
     <h2 class="section-title" style="font-family:'Archivo Black',sans-serif; font-size:17px; text-transform:uppercase; letter-spacing:-0.01em; margin:0 0 14px;">Frequently asked questions</h2>
     <div id="faqList">
       <div class="faq-item">
@@ -362,6 +416,14 @@
       <div class="faq-item">
         <button class="faq-q">Does this replace tracking sleep with a wearable device?<span class="faq-icon">+</span></button>
         <div class="faq-a">No — this is a planning tool based on average cycle length, not a measurement of your actual sleep. A wearable can show your real sleep stages; this helps you plan bedtimes in advance.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Can I log my actual sleep each night?<span class="faq-icon">+</span></button>
+        <div class="faq-a">Yes — enter the time you went to bed and woke up in the "Log last night's sleep" section, and it's saved privately in your browser. You'll see your duration for each of the last 7 nights and a running average.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">What counts as a "good" night in the sleep log?<span class="faq-icon">+</span></button>
+        <div class="faq-a">Nights of at least 7 hours are highlighted in the weekly chart, since 7-9 hours is the generally recommended range for most adults. It's a simple visual cue, not a medical threshold.</div>
       </div>
     </div>
   </div>
@@ -428,6 +490,16 @@
         <div class="ec-desc">Estimate your 10-year heart disease and stroke risk tier.</div>
         <div class="ec-arrow">Open &rarr;</div>
       </a>
+      <a href="https://symptoms.healthylifescale.com" class="explore-card">
+        <div class="ec-name">Symptom Checker</div>
+        <div class="ec-desc">Select your symptoms and find out how urgently to seek care.</div>
+        <div class="ec-arrow">Open &rarr;</div>
+      </a>
+      <a href="https://mentalhealth.healthylifescale.com" class="explore-card">
+        <div class="ec-name">Mental Health Survey</div>
+        <div class="ec-desc">A private PHQ-9 / GAD-7 depression & anxiety screening.</div>
+        <div class="ec-arrow">Open &rarr;</div>
+      </a>
     </div>
   </div>
 
@@ -455,6 +527,8 @@
       <a href="https://heartage.healthylifescale.com">Heart Age Calculator</a>
       <a href="https://breathholding.healthylifescale.com">Breath Holding Test</a>
       <a href="https://ascvd.healthylifescale.com">ASCVD Risk Calculator</a>
+      <a href="https://mentalhealth.healthylifescale.com">Mental Health Survey</a>
+      <a href="https://symptoms.healthylifescale.com">Symptom Checker</a>
     </div>
     <div class="footer-bottom">
       &copy; 2026 Healthy Life Scale. All tools are educational and provide general estimates only &mdash; they are not medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider for medical concerns.
@@ -573,6 +647,95 @@
     $('sleepRows').innerHTML = rowsHtml;
     $('resultLabel').classList.add('show');
   });
+
+  // ---- Sleep log tracker ----
+  const hasClaudeStorage = typeof window.storage !== 'undefined' && window.storage;
+  let localStorageOK = true;
+  try{ localStorage.setItem('__test__','1'); localStorage.removeItem('__test__'); }catch(e){ localStorageOK = false; }
+  const store = {
+    async get(key){
+      if(hasClaudeStorage){ try{ const r = await window.storage.get(key, false); return r ? r.value : null; }catch(e){ return null; } }
+      if(!localStorageOK) return null;
+      try{ return localStorage.getItem(key); }catch(e){ return null; }
+    },
+    async set(key, value){
+      if(hasClaudeStorage){ try{ await window.storage.set(key, value, false); return true; }catch(e){ return false; } }
+      if(!localStorageOK) return false;
+      try{ localStorage.setItem(key, value); return true; }catch(e){ return false; }
+    }
+  };
+
+  function isoDaysAgo(n){ const d = new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); }
+  function sleepDayKey(dateStr){ return 'sleep_log:'+dateStr; }
+
+  function durationHrs(bedStr, wakeStr){
+    const [bh,bm] = bedStr.split(':').map(Number);
+    const [wh,wm] = wakeStr.split(':').map(Number);
+    let bedMin = bh*60+bm;
+    let wakeMin = wh*60+wm;
+    if(wakeMin <= bedMin) wakeMin += 24*60; // overnight
+    return (wakeMin - bedMin) / 60;
+  }
+
+  $('logSleepBtn').addEventListener('click', async ()=>{
+    const bed = $('logBedTime').value;
+    const wake = $('logWakeTime').value;
+    if(!bed || !wake){ alert('Please enter both times.'); return; }
+    const hrs = durationHrs(bed, wake);
+    await store.set(sleepDayKey(isoDaysAgo(0)), JSON.stringify({ bed, wake, hrs }));
+    $('logSleepBtn').textContent = 'Saved \u2713';
+    setTimeout(()=>{ $('logSleepBtn').textContent = 'Save last night\'s sleep'; }, 1800);
+    await renderSleepLog();
+  });
+
+  async function renderSleepLog(){
+    const days = [];
+    for(let i=6; i>=0; i--){
+      const dateStr = isoDaysAgo(i);
+      let rec = null;
+      try{ const v = await store.get(sleepDayKey(dateStr)); rec = v ? JSON.parse(v) : null; }catch(e){}
+      days.push({ dateStr, rec });
+    }
+    const logged = days.filter(d=>d.rec);
+
+    // streak: consecutive days logged, from today backward
+    let streak = 0;
+    for(let i=0; i<days.length; i++){
+      const d = days[days.length-1-i];
+      if(d.rec){ streak++; }
+      else if(i === 0){ continue; }
+      else{ break; }
+    }
+    const badge = $('sleepStreakBadge');
+    if(streak >= 2){
+      badge.className = 'streak-badge';
+      badge.innerHTML = '&#127769; '+streak+'-night logging streak';
+    } else if(streak === 1){
+      badge.className = 'streak-badge';
+      badge.textContent = 'Logged last night \u2014 log again tomorrow to build a streak';
+    } else {
+      badge.className = 'streak-badge zero';
+      badge.textContent = 'No nights logged yet';
+    }
+
+    const maxHrs = Math.max(...days.map(d=>d.rec ? d.rec.hrs : 0), 9);
+    $('sleepWeekChart').innerHTML = days.map(d=>{
+      const heightPct = d.rec ? Math.max(6, Math.round((d.rec.hrs / maxHrs) * 100)) : 4;
+      const cls = !d.rec ? 'empty' : (d.rec.hrs >= 7 ? 'good' : '');
+      const dayLabel = new Date(d.dateStr+'T00:00:00').toLocaleDateString(undefined, {weekday:'narrow'});
+      const title = d.rec ? (d.dateStr+': '+d.rec.hrs.toFixed(1)+' hrs') : (d.dateStr+': not logged');
+      return `<div class="week-bar-col"><div class="week-bar ${cls}" style="height:${heightPct}%;" title="${title}"></div><div class="week-bar-label">${dayLabel}</div></div>`;
+    }).join('');
+
+    if(logged.length){
+      const avg = logged.reduce((s,d)=>s+d.rec.hrs,0) / logged.length;
+      $('sleepAvgLine').textContent = 'Average over logged nights: '+avg.toFixed(1)+' hrs';
+    } else {
+      $('sleepAvgLine').textContent = 'Log a few nights to see your average here.';
+    }
+  }
+
+  renderSleepLog();
 })();
 </script>
 </body>
